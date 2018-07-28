@@ -1,6 +1,6 @@
 # Incoming!
 
-Incoming is a Python script to detect incoming attacks in [OGame](https://en.ogame.gameforge.com/).
+Incoming! is a Python script to detect incoming attacks in [OGame](https://en.ogame.gameforge.com/).
 
 
 ## Dependencies:
