@@ -1,0 +1,14 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+requests = "~=2.19"
+toml = "~=0.9"
+
+[dev-packages]
+rope = "*"
+
+[requires]
+python_version = "3.7"
