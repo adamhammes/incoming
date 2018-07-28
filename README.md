@@ -26,7 +26,7 @@ Create the config file...
 $ touch config.toml
 ```
 
-And edit it to include your OGame credentials.
+... and edit it to include your OGame credentials.
 For example,
 
 ```toml
