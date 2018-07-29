@@ -1,6 +1,7 @@
 
 import logging
 import sys
+from urllib.parse import urlparse
 
 import requests
 import toml
@@ -86,6 +87,20 @@ def login(user_credentials):
 
         with open("game_page_normal.html", "w") as f:
             f.write(page_response.text)
+
+        base_location = urlparse(game_login_url).netloc
+        event_info_url = f"https://{base_location}/game/index.php?page=eventList&ajax=1"
+
+        event_response = session.get(event_info_url)
+
+        if event_response.ok:
+            logging.info("Successfully retrieved event info")
+        else:
+            logging.error("Failed event info fetch :-(")
+            sys.exit()
+
+        with open("event_info.html", "w") as f:
+            f.write(event_response.text)
 
 
 def run(config):
