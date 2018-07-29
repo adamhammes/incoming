@@ -4,8 +4,13 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
+cssselect = "~=1.0"
+# We pin the lxml version or dependency resolution never stops 
+# ¯\_(ツ)_/¯
+lxml = "==4.2.3"
 requests = "~=2.19"
 toml = "~=0.9"
+twilio = "~=6.15"
 
 [dev-packages]
 rope = "*"
