@@ -5,6 +5,7 @@ Incoming! is a Python script to detect incoming attacks in [OGame](https://en.og
 
 ## Dependencies:
 
+* [A Twilio account and number](https://www.twilio.com/try-twilio)
 * [Python >= 3.7](https://www.python.org/getit/)
 * [Pipenv](https://docs.pipenv.org/install/#installing-pipenv)
 
@@ -26,14 +27,28 @@ Create the config file...
 $ touch config.toml
 ```
 
-... and edit it to include your OGame credentials.
+... and edit it to include your Twilio/OGame credentials.
 For example,
 
 ```toml
-[[accounts]]
+[twilio]
+
+# Your Account Sid and Auth Token from twilio.com/console
+
+account_sid = "asdfasdfasdfasdf"
+oauth_token = "asdfasdfasdfasdf"
+
+# Your Twilio number to send from
+from_number = "+12222222222"
+
+# Repeat this section for each user you wish to monitor.
+# By default, Incoming! will check all of an user's accounts.
+[[users]]
 
 email = "your account email"
 password = "your account password"
+
+cell_number = "+233333333333"
 ```
 
 Now you're ready to rumble!
