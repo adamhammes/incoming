@@ -1,9 +1,8 @@
 # Incoming!
 
-Incoming! is a Python script to detect incoming attacks in [OGame](https://en.ogame.gameforge.com/).
+Incoming! is a Python script to detect incoming attacks in [OGame](https://en.ogame.gameforge.com/) and notify the user by text message.
 
-
-## Dependencies:
+## Prerequisites:
 
 * [A Twilio account and number](https://www.twilio.com/try-twilio)
 * [Python >= 3.7](https://www.python.org/getit/)
@@ -12,7 +11,7 @@ Incoming! is a Python script to detect incoming attacks in [OGame](https://en.og
 
 ## Quickstart:
 
-If you haven't already, install the [dependencies](#dependencies).
+If you haven't already, install the [prerequisites](#prerequisites).
 Then, grab a copy of the project and its dependencies:
 
 ```
@@ -36,13 +35,13 @@ For example,
 # Your Account Sid and Auth Token from twilio.com/console
 
 account_sid = "asdfasdfasdfasdf"
-oauth_token = "asdfasdfasdfasdf"
+auth_token = "asdfasdfasdfasdf"
 
 # Your Twilio number to send from
 from_number = "+12222222222"
 
 # Repeat this section for each user you wish to monitor.
-# By default, Incoming! will check all of an user's accounts.
+# By default, Incoming! will check all of a user's accounts.
 [[users]]
 
 email = "your account email"
