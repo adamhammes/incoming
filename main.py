@@ -156,14 +156,13 @@ def read_attacks(event_response):
 
 def notify_attacks(config, user, attacks):
     client = twilio.rest.Client(
-        account_sid=config["twilio"]["account_sid"],
-        oauth_token=config["twilio"]["oauth_token"],
+        config["twilio"]["account_sid"], config["twilio"]["auth_token"]
     )
 
     user_cell = user["cell_number"]
 
     client.messages.create(
-        from_=config["twilio"]["number"],
+        from_=config["twilio"]["from_number"],
         to=user_cell,
         body="You're under attack! - OGame Incoming!",
     )
