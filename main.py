@@ -16,6 +16,12 @@ HEADERS = {"User-Agent": USER_AGENT}
 
 ACCOUNT_FORM_DEFAULTS = {"autologin": "false", "language": "en", "kid": ""}
 
+LOBBY_URL = "https://us.ogame.gameforge.com/"
+FACEBOOK_BUTTON_URL = "https://www.facebook.com/v2.12/plugins/login_button.php?app_id=1224840394326213&auto_logout_link=false&button_type=continue_with&channel=https%3A%2F%2Fstaticxx.facebook.com%2Fconnect%2Fxd_arbiter%2Fr%2FQX17B8fU-Vm.js%3Fversion%3D42%23cb%3Df1eabd12cce0a7%26domain%3Dus.ogame.gameforge.com%26origin%3Dhttps%253A%252F%252Fus.ogame.gameforge.com%252Ff16c11ec890c03c%26relation%3Dparent.parent&container_width=500&locale=en_US&max_rows=0&scope=public_profile%2Cemail&sdk=joey&show_faces=false&size=large&use_continue_as=false&width=200"
+FACEBOOK_API_KEY = "1224840394326213"
+FACEBOOK_LOGIN_URL = "https://www.facebook.com/login.php"
+OGAME_FACEBOOK_LOGIN_URL = "https://lobby-api.ogame.gameforge.com/login/facebook"
+
 USER_LOGIN_URL = "https://lobby-api.ogame.gameforge.com/users"
 ACCOUNT_INFO_URL = "https://lobby-api.ogame.gameforge.com/users/me/accounts"
 LOGIN_LINK_URL = "https://lobby-api.ogame.gameforge.com/users/me/loginLink"
@@ -28,26 +34,61 @@ def am_being_attacked(main_page_response):
     return bool(tree.cssselect(ATTACK_ALERT_SELECTOR))
 
 
-def user_login(session, user_credentials):
+def facebook_login(session, user_credentials):
     email, password = user_credentials["email"], user_credentials["password"]
 
-    logging.info(f"Performing login for {email}")
+    main_page_response = session.get("https://m.facebook.com/")
 
-    session.headers = HEADERS
+    tree = lxml.html.fromstring(main_page_response.content)
+    form = tree.cssselect("#login_form")[0]
 
-    user_login_data = {
-        **ACCOUNT_FORM_DEFAULTS,
-        "credentials[email]": email,
-        "credentials[password]": password,
+    request_data = {"pass": password, "email": email}
+
+    hidden_inputs = form.cssselect('input[type="hidden"]')
+
+    for hidden_input in hidden_inputs:
+        request_data[hidden_input.get("name")] = hidden_input.get("value")
+
+    form_action = form.get("action")
+    login_response = session.post(form_action, data=request_data)
+
+    with open("fb_response.html", "w") as f:
+        f.write(login_response.text)
+
+    token = {
+        "token": "EAARZAZCGCcQMUBAGUEG6uGUtOvaQyPjLpxJLZANNxu8lwQXWXbkwYIdkihdt1bz88Oya9ygYRxJWgp5BkARZBhyB1Xl4JY3fZA6zIzr68gajehkS4OI4HIRn5ub1Bz7yGxetWUqaXAXovdyOazZCBLdSTnyiZAt501ZCb9Th3meyVV18sbJ2A1ujMgtUlrbmbQdUAj2R3xvWpwZDZD"
     }
+    session.post(OGAME_FACEBOOK_LOGIN_URL, data=token)
 
-    login_response = session.post(USER_LOGIN_URL, data=user_login_data)
 
-    if login_response.ok:
-        logging.info("Successfully logged into account!")
+def user_login(session, user_credentials):
+    email, password, with_facebook = (
+        user_credentials["email"],
+        user_credentials["password"],
+        user_credentials["facebook"],
+    )
+
+    if with_facebook:
+        logging.info(f"Performing Facebook login for {email}")
+        facebook_login(session, user_credentials)
     else:
-        logging.error("Failed account login :-(")
-        sys.exit()
+        logging.info(f"Performing login for {email}")
+
+        session.headers = HEADERS
+
+        user_login_data = {
+            **ACCOUNT_FORM_DEFAULTS,
+            "credentials[email]": email,
+            "credentials[password]": password,
+        }
+
+        login_response = session.post(USER_LOGIN_URL, data=user_login_data)
+
+        if login_response.ok:
+            logging.info("Successfully logged into account!")
+        else:
+            logging.error("Failed account login :-(")
+            sys.exit()
 
     # Fetch the account info
     account_response = session.get(ACCOUNT_INFO_URL)

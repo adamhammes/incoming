@@ -44,6 +44,8 @@ from_number = "+12222222222"
 # By default, Incoming! will check all of a user's accounts.
 [[users]]
 
+# `true` if you use Facebook to login
+facebook = true
 email = "your account email"
 password = "your account password"
 
