@@ -23,6 +23,7 @@ LOGIN_LINK_URL = "https://lobby-api.ogame.gameforge.com/users/me/loginLink"
 ATTACK_ALERT_SELECTOR = "#attack_alert:not(.noAttack)"
 
 OUTPUT_DIR = "output"
+ATTACK_CACHE_PATH = os.path.join(OUTPUT_DIR, "seen_attacks.toml")
 LOG_PATH = os.path.join(OUTPUT_DIR, "log.txt")
 
 
@@ -142,7 +143,7 @@ def read_attacks(event_response):
     logging.debug("START: incoming attacks\n")
     for row in hostile_attack_rows:
         attack_info = {
-            "id": row.get("id"),
+            "id": row.get("id").split("-")[1],
             "arrival_time": row.get("data-arrival-time"),
             "origin": row.cssselect(".originFleet")[0].text_content().strip(),
             "destination": row.cssselect(".destFleet")[0].text_content().strip(),
@@ -154,6 +155,30 @@ def read_attacks(event_response):
     logging.debug("\nEND: incoming attacks\n")
 
     return hostile_attacks
+
+
+def cache_and_filter_attacks(user, attacks):
+    with open(ATTACK_CACHE_PATH, "r+") as f:
+        attack_cache = toml.loads(f.read())
+
+    if not user["email"] in attack_cache:
+        attack_cache[user["email"]] = {}
+
+    previous_attacks = attack_cache[user["email"]]
+
+    new_attacks = []
+    for attack in attacks:
+        if attack["id"] in previous_attacks:
+            logging.info(f"Attack #{attack['id']} already seen")
+        else:
+            logging.info(f"Attack #{attack['id']} is new!")
+            new_attacks.append(attack)
+            previous_attacks[attack["id"]] = attack
+
+    with open(ATTACK_CACHE_PATH, "w") as f:
+        toml.dump(attack_cache, f)
+
+    return new_attacks
 
 
 def notify_attacks(config, user, attacks):
@@ -177,14 +202,19 @@ def run(config):
 
             for account in accounts:
                 account_url = account_login(session, account)
-                attacks = check_for_attacks(session, account_url)
+                all_attacks = check_for_attacks(session, account_url)
 
-                if attacks:
-                    notify_attacks(config, user, attacks)
+                new_attacks = cache_and_filter_attacks(user, all_attacks)
+
+                if new_attacks:
+                    notify_attacks(config, user, new_attacks)
 
 
 def main():
     os.makedirs(OUTPUT_DIR, exist_ok=True)
+
+    # Create the attack cache if it doesn't already exist
+    open(ATTACK_CACHE_PATH, "a").close()
 
     logging.basicConfig(
         level=logging.INFO,
