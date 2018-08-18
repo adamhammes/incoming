@@ -1,7 +1,9 @@
+import datetime
 import logging
 import os
 import pprint
 import sys
+import time
 from urllib.parse import urlparse
 
 import cssselect
@@ -144,7 +146,7 @@ def read_attacks(event_response):
     for row in hostile_attack_rows:
         attack_info = {
             "id": row.get("id").split("-")[1],
-            "arrival_time": row.get("data-arrival-time"),
+            "arrival_time": int(row.get("data-arrival-time")),
             "origin": row.cssselect(".originFleet")[0].text_content().strip(),
             "destination": row.cssselect(".destFleet")[0].text_content().strip(),
         }
@@ -188,10 +190,15 @@ def notify_attacks(config, user, attacks):
 
     user_cell = user["cell_number"]
 
+    first_arrival = min(attack["arrival_time"] for attack in attacks)
+    now = int(time.time())
+
+    time_delta = datetime.timedelta(seconds=first_arrival - now)
+
     client.messages.create(
         from_=config["twilio"]["from_number"],
         to=user_cell,
-        body="You're under attack! - OGame Incoming!",
+        body=f"You're under attack! Arrival in {str(time_delta)}.",
     )
 
 
