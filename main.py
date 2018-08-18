@@ -1,4 +1,5 @@
 import logging
+import os
 import pprint
 import sys
 from urllib.parse import urlparse
@@ -9,7 +10,6 @@ import requests
 import toml
 import twilio.rest
 
-logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_1)"
 HEADERS = {"User-Agent": USER_AGENT}
@@ -21,6 +21,9 @@ ACCOUNT_INFO_URL = "https://lobby-api.ogame.gameforge.com/users/me/accounts"
 LOGIN_LINK_URL = "https://lobby-api.ogame.gameforge.com/users/me/loginLink"
 
 ATTACK_ALERT_SELECTOR = "#attack_alert:not(.noAttack)"
+
+OUTPUT_DIR = "output"
+LOG_PATH = os.path.join(OUTPUT_DIR, "log.txt")
 
 
 def am_being_attacked(main_page_response):
@@ -181,6 +184,17 @@ def run(config):
 
 
 def main():
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
+
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s %(message)s",
+        handlers=[
+            logging.FileHandler(LOG_PATH, mode="a"),
+            logging.StreamHandler(sys.stdout),
+        ],
+    )
+
     config = toml.load("config.toml")
     run(config)
 
